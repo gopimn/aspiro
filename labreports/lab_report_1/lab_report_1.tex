@@ -1,0 +1,110 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% University/School Laboratory Report
+% LaTeX Template
+% Version 3.1 (25/3/14)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Original author:
+% Linux and Unix Users Group at Virginia Tech Wiki 
+% (https://vtluug.org/wiki/Example_LaTeX_chem_lab_report)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass{article}
+\usepackage[utf8x]{inputenc}
+\usepackage[version=3]{mhchem} % Package for chemical equation typesetting
+\usepackage{siunitx} % Provides the \SI{}{} and \si{} command for typesetting SI units
+\usepackage{graphicx} % Required for the inclusion of images
+\usepackage{natbib} % Required to change bibliography style to APA
+\usepackage{amsmath} % Required for some math elements 
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+
+\renewcommand{\labelenumi}{\alph{enumi}.} % Make numbering in the enumerate environment by letter rather than number (e.g. section 6)
+
+%\usepackage{times} % Uncomment to use the Times New Roman font
+
+%----------------------------------------------------------------------------------------
+%	DOCUMENT INFORMATION
+%----------------------------------------------------------------------------------------
+
+\title{Reporte pruebas ADC, interpretación de datos}
+%\title{Determination of the Atomic \\ Weight of Magnesium \\ CHEM 101} % Title
+
+\author{Felipe M.N.} % Author name
+
+\date{\today} % Date for the report
+
+\begin{document}
+
+\maketitle % Insert the title, author and date
+
+\begin{center}
+\begin{tabular}{l r}
+Fecha sesión: & Noviembre 26, 2015 % Date the experiment was performed
+%Partners: & James Smith \\ % Partner names
+%& Mary Smith \\
+%Instructor: & Professor Smith % Instructor/supervisor
+\end{tabular}
+\end{center}
+
+% If you wish to include an abstract, uncomment the lines below
+% \begin{abstract}
+% Abstract text
+% \end{abstract}
+
+%----------------------------------------------------------------------------------------
+%	SECTION 1
+%----------------------------------------------------------------------------------------
+
+\section{Objectivo}
+Se busca determinar la relación de los datos que entrega el ads1247, para poder obetener el valor de la temperatura.
+\section{Desarrollo de pruebas}
+De acuerdo al conexionado mostrado en el ejemplo del datasheet, tenemos:
+\[
+V_{in}=0.0015\cdot((RTD+15)+(100+15))
+\]
+Por lo que para lecturas entre $0^oC$ y $60^oC$ debiese entregar un voltaje entre $(0.3\; a\; 0.33486)[V]$. El voltaje leído por el ADC sería:
+\[
+V_{read} =  \eta_{adc}\cdot\frac{2.7}{PGA\cdot (2^{23}-1)}
+\]
+Donde $\eta_{adc}$ es el valor en decimal de la salida del ADC, despues de convertir los datos en binario complemento dos. Se setea la ganancia en $PGA=8$ pero las lecturas entregan valores mucho menores e inexactos ($<0.001 [V]$). Claramente hay un problema a la entrada del ADC o en las fórmulas que se usan.
+\section{Conclusiones}
+Se debe medir con un voltímetro la entrada del ADC para descartar errores eléctricos en la entrada, se debe depurar la fórmula con la que se obtiene el voltaje. Se debe medir la resistencia del PT100 a cero grados y a alguna otra temperatura. Se necesita un termómetro ambiental o comprarar las lecturas con el sensor de temperatura DTH11.\\
+Una de las soluciones que funcionaría si p si, es rehacer el dispositivo y exitar los RTD con una fuente externa en vez de las fuentes internas del ADC (Solución menos elegante).\\
+Se debe medir la salida de corriente de las fuentes del ADC.
+% If you have more than one objective, uncomment the below:
+%\begin{description}
+%\item[First Objective] \hfill \\
+%Objective 1 text
+%\item[Second Objective] \hfill \\
+%Objective 2 text
+%\end{description}
+
+%----------------------------------------------------------------------------------------
+%	BIBLIOGRAPHY
+%----------------------------------------------------------------------------------------
+\section{Notas Finales}
+\begin{itemize}
+\item Referenciar el datasheet.
+\item Traer el multitester y el datasheet impreso de la pega.
+\item Llevar a la pega el dispositivo y probarlo en el osciloscopio.
+  \item Subir el código a GITHUB.
+  \end{itemize}
+\bibliographystyle{apalike}
+
+\bibliography{sample}
+
+%----------------------------------------------------------------------------------------
+
+
+\end{document}
