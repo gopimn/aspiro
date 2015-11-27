@@ -1,61 +1,32 @@
+
 /*LIBRARIES*/
-#include <SPI.h>
+#include <SPI.h> //Para poder comunicarse con 
 #include <SD.h>
 #include "DHT.h"
 #include <Wire.h>
 #include "RTClib.h"
 
-
 /*GLOBAL DECLARATIONS*/
+#define A 0.0039083
+#define B 0.0000005775
+#define C -0.000000000004183
 const int DTRDY = 7;      //indicates the end of data conversion
 const int ADS_CS = 9;     //Comunication control pin
 const int chipSelect = 8;
 int regarray[14];         //Saves all the registers of the ads1247
-signed long RTDA, RTDB;
-
-RTC_DS1307 rtc;
-int mode_index = 0;
-unsigned long ttime;
-Ds1307SqwPinMode modes[] = {OFF, ON, SquareWave1HZ, SquareWave4kHz, SquareWave8kHz, SquareWave32kHz};
-
-
-#define DHTPIN 5
-#define DHTTYPE DHT11   // DHT 11
-DHT dht(DHTPIN, DHTTYPE);
-
+int RTDA = 0, RTDB = 0;
+double RT;
 /*  SETUP*/
 void setup() {
-  Serial.begin(115200);
-  while (!Serial) {
-    ; // wait for serial port to connect. Needed for Leonardo only
-  }
+  Serial.begin(9600);
+  //  while (!Serial) {
+  //    ; // wait for serial port to connect. Needed for Leonardo only
+  //  }
   pinMode(ADS_CS, OUTPUT);
   digitalWrite(ADS_CS, HIGH);
-  pinMode(1, OUTPUT);
-  digitalWrite(1, HIGH);
   pinMode(DTRDY, INPUT);
-
-  Serial.print("Initializing SD card...");
-
-  // see if the card is present and can be initialized:
-  if (!SD.begin(chipSelect)) {
-    Serial.println("Card failed, or not present");
-    // don't do anything more:
-    return;
-  }
-  Serial.println("card initialized.");
   SPI.begin();
-  dht.begin();
-  Wire.begin();
-  rtc.begin();
-  if (! rtc.isrunning()) {
-    Serial.println("RTC is NOT running!");
-    // following line sets the RTC to the date & time this sketch was compiled
-    // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-    // This line sets the RTC with an explicit date & time, for example to set
-    // January 21, 2014 at 3am you would call:
-    rtc.adjust(DateTime(2014, 1, 21, 3, 0, 0));
-  }
+
 }
 
 /* BEGIN OF FUNCTIONS*/
@@ -133,14 +104,14 @@ signed long c_t(long value) {
   if (value > 8388607) {
     value = value - 16777216;
   }
-  return value;
+  else
+    return value;
 }
 /* END OF FUNCTIONS*/
 
 
 /*     MAIN LOOP    */
 void loop() {
-  DateTime now = rtc.now();
   unsigned long stamp, pstamp = millis();
   int samplecounter = 0;
   Serial.println("RESET TO POWERUP VALUES");
@@ -152,7 +123,7 @@ void loop() {
   ads_write_reg(0x0, 0x01);
   ads_write_reg(0x1, 0x00);
   ads_write_reg(0x2, 0x20);
-  ads_write_reg(0x3, 0x01);
+  ads_write_reg(0x3, 0x31);
   ads_write_reg(0x4, 0x00);
   ads_write_reg(0x5, 0x00);
   ads_write_reg(0x6, 0x00);
@@ -168,50 +139,37 @@ void loop() {
   }
   Serial.println();
   while (1) {
-    now = rtc.now();
-    pinMode(ADS_CS, OUTPUT);
-    digitalWrite(ADS_CS, HIGH);
-    String dataString = "";
+
+    /*
+      >> A=3.9083*10^-3
+      A =  0.0039083
+      >> B=-5.775*10^-7
+      B =   -5.7750e-07
+      >> C=-4.183*10^-12
+      C =   -4.1830e-12
+      >> (-A+sqrt(A^2-4*B*(1-150/100)))/(2*B)
+      ans =  130.45
+    */
+
+    ads_write_reg(0x0, 0x01);
+    ads_write_reg(0xB, 0x01);
     RTDA = ads_read_once();
-    dataString += String((273*c_t(RTDA)/64267.85)-273);
+    delay(10);
     ads_write_reg(0x0, 0x1A);
     ads_write_reg(0xB, 0x23);
-    delay(10);
-    dataString += ";";
     RTDB = ads_read_once();
-    dataString += String((273*c_t(RTDB)/80500.1)-273);
-    ads_write_reg(0x0, 0x01);
-    ads_write_reg(0xB, 001);
-    dataString += ";";
-    dataString += String(now.hour());
-    dataString += ";";
-    dataString += String(now.minute());
-    dataString += ";";
-    dataString += String(now.second());
     delay(10);
-    File dataFile = SD.open("datalog.txt", FILE_WRITE);
-    // if the file is available, write to it:
-    if (dataFile) {
-      dataFile.println(dataString);
-      dataFile.close();
-      // print to the serial port too:
-      Serial.println(dataString);
-    }
-    else {
-      Serial.println("error opening datalog.txt");
-    }
-    Serial.print(((c_t(RTDA)*0.000074)+5.5), DEC);
+    RT = (((c_t(RTDA) * 2.7) / (8388607)) );
+    Serial.print(RT, DEC);
     Serial.print("::");
-    Serial.print(((c_t(RTDB)*0.000073)+6.5), DEC);
+    Serial.print(RTDA, HEX);
     Serial.print("::");
-    float t = dht.readTemperature();
-    Serial.print(t);
+    Serial.print(RTDA, DEC);
     Serial.print("::");
-    Serial.print(now.hour(), DEC);
-    Serial.print(':');
-    Serial.print(now.minute(), DEC);
-    Serial.print(':');
-    Serial.print(now.second(), DEC);
+    Serial.print(c_t(RTDA), DEC);
+    Serial.print("::");
+    RT = (((c_t(RTDB) * 2.7) / (8388607))) ;
+    Serial.print(RT, DEC);
     Serial.println();
     delay(1000);
   }
